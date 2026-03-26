@@ -1,0 +1,52 @@
+response,label
+"I understand recursion because the function calls itself until the base case is reached.",1
+"The base case in recursion stops infinite loops, ensuring the algorithm terminates.",1
+"Recursion works by breaking a problem into smaller sub-problems and solving each one.",1
+"OOP allows us to model real-world objects using classes and objects with attributes and methods.",1
+"Polymorphism lets different classes share a single interface, enabling flexible design.",1
+"Inheritance allows child classes to reuse and extend parent class functionality.",1
+"A linked list stores elements in nodes, each pointing to the next node in the chain.",1
+"Binary search divides the search space in half each iteration, giving O(log n) performance.",1
+"Dynamic programming stores sub-problem results to avoid redundant computation.",1
+"A stack follows LIFO order; push adds an element and pop removes the last added element.",1
+"Encapsulation hides internal state, exposing only necessary operations through a public interface.",1
+"A queue uses FIFO order; enqueue adds to the back and dequeue removes from the front.",1
+"The time complexity of merge sort is O(n log n) because it divides and then merges.",1
+"HTTP is stateless, so cookies and sessions are used to maintain user state across requests.",1
+"Hashing allows O(1) average lookup by mapping keys to array indices via a hash function.",1
+"I think recursion is when a function repeats but I am not sure how it stops.",0
+"I don't know what recursion is exactly, maybe it loops?",0
+"Not sure about OOP; I think it is about writing classes but I don't understand why.",0
+"I don't understand polymorphism, it sounds complicated.",0
+"I am confused about linked lists, not really sure how nodes connect.",0
+"I don't know how binary search works, maybe it goes through every element?",0
+"Dynamic programming is confusing, I don't know when to use it.",0
+"I am not sure what a stack does, I know it is a data structure.",0
+"I don't get encapsulation, something about hiding data I think.",0
+"Not sure what hashing means, is it like a list?",0
+"Recursion is a programming technique where the function calls itself.",0
+"It repeats using a loop maybe? I am not totally sure about the base case.",0
+"I vaguely remember that OOP has classes but I don't know about inheritance.",0
+"Binary search might search through the list but I am not sure of the steps.",0
+"I know stacks are used somewhere in programming but I forget the details.",0
+"I think I understand recursion a little but I can't explain the base case clearly.",0
+"Linked lists have something to do with pointers, but I don't know the structure.",0
+"I have heard of dynamic programming but I don't know what memoization is.",0
+"Maybe queues are like lines? I am not completely sure how they work in code.",0
+"I know sorting exists but I can't explain how merge sort divides the array.",0
+"Recursion is when the function calls itself, with a condition to stop called the base case.",1
+"OOP encapsulates data and behavior inside objects, promoting modularity and code reuse.",1
+"A tree is a hierarchical data structure with a root node and child nodes forming a hierarchy.",1
+"Graph traversal algorithms like BFS and DFS explore nodes systematically to find paths.",1
+"The space complexity of an algorithm measures memory usage as input size grows.",1
+"Abstraction hides implementation details so users interact only with the necessary interface.",1
+"A hash table resolves collisions using chaining or open addressing methods.",1
+"Quicksort uses a pivot to partition the array and recursively sorts each partition.",1
+"Memoization caches expensive function results to speed up repeated computations.",1
+"Interfaces define contracts that implementing classes must fulfill, enabling polymorphism.",1
+"I don't know, I wasn't paying attention during the lecture on graphs.",0
+"I am confused, maybe DFS visits all nodes but I don't remember the order.",0
+"Not sure about quicksort, I think it involves dividing but I can't explain how.",0
+"I don't understand memoization, is it similar to memorizing? Not sure.",0
+"I am lost when it comes to space complexity, I don't know how to measure it.",0
+"Abstraction is confusing, I don't know what interface means in OOP.",0
