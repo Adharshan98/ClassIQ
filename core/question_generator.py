@@ -1,135 +1,84 @@
 """
 core/question_generator.py
 --------------------------
-Fully offline question generator for ClassIQ.
-Returns a randomly selected conceptual question from a local question bank.
-
-If the topic is not found, returns a generic fallback question.
-No external APIs, no internet connection required.
+AI-powered question generator for ClassIQ.
+Generates a theory-based question dynamically using Google's Gemini AI.
+Falls back to a generic conceptual question if the API fails or is not configured.
 """
 
-import random
+import os
+import google.generativeai as genai
 
-# ── Local Question Bank ────────────────────────────────────────────────────────
-# Each topic has 3–5 conceptual short-answer questions.
-QUESTION_BANK: dict[str, list[str]] = {
-    "Recursion": [
-        "Explain what a base case is in recursion and why it is necessary.",
-        "How does the call stack behave when a recursive function is executed?",
-        "What is the difference between direct and indirect recursion?",
-        "What happens when a recursive function never reaches its base case?",
-    ],
-    "OOP": [
-        "What is encapsulation and how does it improve code maintainability?",
-        "Explain polymorphism with a real-world programming example.",
-        "How is inheritance different from composition in object-oriented design?",
-        "What is the difference between a class and an object?",
-    ],
-    "Linked List": [
-        "What are the advantages of a linked list over an array?",
-        "Explain how memory is allocated for a linked list compared to an array.",
-        "Describe the process of reversing a singly linked list.",
-        "What is the role of the head pointer in a linked list?",
-    ],
-    "Binary Search": [
-        "Why must an array be sorted before applying binary search?",
-        "Explain the time complexity of binary search O(log n) in simple terms.",
-        "How do you find the middle element during binary search without overflow?",
-    ],
-    "Sorting": [
-        "Compare the time complexities of Merge Sort and QuickSort. When would you use each?",
-        "Explain how the pivot element is chosen and used in QuickSort.",
-        "Describe the logic behind Insertion Sort and when it is most efficient.",
-        "What does it mean for a sorting algorithm to be stable?",
-    ],
-    "Hashing": [
-        "What is a hash collision and how can it be resolved using separate chaining?",
-        "Explain the concept of a 'load factor' in a hash table.",
-        "Why is it important to have a good hash function?",
-        "What makes O(1) lookup in a hash table only an average-case guarantee?",
-    ],
-    "Dynamic Programming": [
-        "What is the principle of optimality in Dynamic Programming?",
-        "Compare memoization (top-down) and tabulation (bottom-up) approaches.",
-        "Why is DP generally faster than plain recursion for problems like Fibonacci?",
-        "What are 'overlapping sub-problems' and why do they matter in DP?",
-    ],
-    "Graph": [
-        "Compare Breadth-First Search (BFS) and Depth-First Search (DFS).",
-        "What is the difference between an adjacency matrix and an adjacency list?",
-        "Explain what a cycle in a graph is and how DFS can detect it.",
-        "What is the difference between a directed and an undirected graph?",
-    ],
-    "Stack": [
-        "Describe the LIFO principle and give two real-world applications of a Stack.",
-        "How can a stack be used to evaluate a postfix expression?",
-        "Explain how the call stack operates during nested function calls.",
-    ],
-    "Queue": [
-        "Describe the FIFO principle and give an example from operating systems.",
-        "What is a circular queue and what problem does it solve?",
-        "Compare a Priority Queue with a standard Queue.",
-    ],
-    # Additional topics from the spec
-    "AI": [
-        "What is the difference between supervised and unsupervised learning?",
-        "Explain what a neural network is in simple terms.",
-        "What role does training data play in machine learning models?",
-        "What is overfitting and how can it be prevented?",
-    ],
-    "DBMS": [
-        "What is the purpose of normalization in a relational database?",
-        "Explain the difference between a primary key and a foreign key.",
-        "What is a transaction and what are its ACID properties?",
-        "Compare SQL and NoSQL databases with examples.",
-    ],
-    "OS": [
-        "What is the difference between a process and a thread?",
-        "Explain the concept of deadlock and the conditions required for it.",
-        "What is virtual memory and why is it used?",
-        "Describe the round-robin CPU scheduling algorithm.",
-    ],
-    "Networking": [
-        "What is the role of the OSI model in computer networking?",
-        "Explain how TCP differs from UDP with an example use case.",
-        "What is the purpose of a subnet mask in IP addressing?",
-        "How does DNS resolve a domain name to an IP address?",
-    ],
-    "Data Structures": [
-        "What is the difference between a stack and a queue?",
-        "When would you use a heap over a balanced BST?",
-        "Explain the trade-offs between using an array vs. a linked list.",
-        "What is a priority queue and where is it commonly used?",
-    ],
-}
+# Try to configure Gemini API if the key exists
+_api_key = os.environ.get("GEMINI_API_KEY")
+if _api_key:
+    genai.configure(api_key=_api_key)
 
-
-def generate_question(topic: str) -> str:
+def generate_question(topic: str, difficulty: str = "Medium") -> str:
     """
-    Return a randomly selected conceptual question for the given topic.
-
-    Falls back to a generic question if the topic is not in the question bank.
-
-    Parameters
-    ----------
-    topic : str
-        The lesson topic (e.g. 'Recursion', 'OOP', 'Graph').
-
-    Returns
-    -------
-    str – a single conceptual question.
+    Generate a theory-based question that a teacher can ask a student.
+    
+    If Gemini API is configured and accessible, it uses Gemini to generate the question.
+    Otherwise, it falls back to a locally generated basic question.
     """
-    # Exact match first, then case-insensitive match
-    bank = QUESTION_BANK.get(topic)
-    if bank is None:
-        # Try case-insensitive lookup
-        for key in QUESTION_BANK:
-            if key.lower() == topic.lower():
-                bank = QUESTION_BANK[key]
-                break
+    
+    prompt = f"""
+Instead of selecting a topic from a predefined dropdown list, the teacher will type any topic manually. The teacher will also specify a difficulty level.
 
-    if bank:
-        return random.choice(bank)
+Your task is to generate a theory-based question that the teacher can ask the student.
 
-    # Generic fallback for unknown topics
-    return f"Explain the core concepts of {topic} in your own words."
+Input:
+* Topic: {topic}
+* Difficulty Level: {difficulty}
+
+Instructions:
+* Act as a teacher asking a student a question.
+* The question must be purely theory-oriented (no coding or implementation).
+* Focus on conceptual understanding, explanations, definitions, comparisons, or real-world applications.
+* Adjust the depth based on difficulty:
+  * Easy: Simple definitions or basic explanation
+  * Medium: Conceptual understanding with reasoning or comparison
+  * Hard: Deep analysis, critical thinking, or multi-part questions
+* Generate only ONE main question.
+* For Medium/Hard, you may include sub-parts like (a), (b), (c).
+* The tone should be formal and academic, like in an exam or viva.
+
+Output Format:
+
+Teacher’s Question:
+<clear, well-structured theory question>
+
+Expected Answer Key Points:
+* Point 1
+* Point 2
+* Point 3
+"""
+    
+    if _api_key:
+        try:
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            response = model.generate_content(prompt)
+            if response.text:
+                return response.text.strip()
+        except Exception:
+            # Fall through to offline handling
+            pass
+            
+    # Generic offline fallback if API fails or is not configured
+    if difficulty.lower() == "easy":
+        diff_str = "simple definitions or basic explanations"
+    elif difficulty.lower() == "medium":
+        diff_str = "conceptual understanding with reasoning or comparison"
+    else:
+        diff_str = "deep analysis, critical thinking, or multi-part questions"
+        
+    fallback_text = (
+        f"**Teacher’s Question:**\n"
+        f"Explain the core concepts of {topic} focusing on {diff_str}.\n\n"
+        f"**Expected Answer Key Points:**\n"
+        f"* Key definition or conceptual overview\n"
+        f"* Real-world application or comparison\n"
+        f"* Critical detail based on {difficulty} difficulty"
+    )
+    return fallback_text
+

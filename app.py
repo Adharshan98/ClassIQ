@@ -42,35 +42,44 @@ st.markdown('<div class="sec-label">🚀 &nbsp; Select Your Portal</div>', unsaf
 c1, c2 = st.columns(2, gap="large")
 with c1:
     st.markdown("""
-    <div style="background: linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
-                border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
-                padding: 2.4rem 2rem; text-align:center;
-                margin-bottom: .5rem;">
-        <div class="role-icon">🎓</div>
-        <div class="role-title" style="margin-bottom:1rem;">Teacher</div>
-        <div class="role-desc">
-            Start sessions, monitor live engagement,<br>
-            view concept gaps, and get AI teaching recommendations.
+    <style>
+    .portal-card-hover:hover {
+        transform: translateY(-5px);
+        border: 1px solid rgba(255,255,255,0.3) !important;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+    }
+    </style>
+    <a href="Teacher_Portal" target="_self" style="text-decoration:none; color:inherit; display:block;">
+        <div class="portal-card-hover" style="background: linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
+                    border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
+                    padding: 2.4rem 2rem; text-align:center;
+                    margin-bottom: .5rem; transition: all 0.2s ease;">
+            <div class="role-icon" style="font-size:3rem;margin-bottom:1rem;">🎓</div>
+            <div class="role-title" style="margin-bottom:1rem;font-size:1.5rem;font-weight:600;">Teacher</div>
+            <div class="role-desc" style="opacity:0.8;font-size:0.95rem;line-height:1.5;">
+                Start sessions, monitor live engagement,<br>
+                view concept gaps, and get AI teaching recommendations.
+            </div>
         </div>
-    </div>
+    </a>
     """, unsafe_allow_html=True)
-    st.page_link("pages/1_Teacher_Portal.py", label="Open Teacher Portal →", icon="🎓", use_container_width=True)
 
 with c2:
     st.markdown("""
-    <div style="background: linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
-                border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
-                padding: 2.4rem 2rem; text-align:center;
-                margin-bottom: .5rem;">
-        <div class="role-icon">📚</div>
-        <div class="role-title" style="margin-bottom:1rem;">Student</div>
-        <div class="role-desc">
-            Join a session with your session code,<br>
-            answer the question, and receive instant AI feedback.
+    <a href="Student_Portal" target="_self" style="text-decoration:none; color:inherit; display:block;">
+        <div class="portal-card-hover" style="background: linear-gradient(135deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
+                    border: 1px solid rgba(255,255,255,0.10); border-radius: 20px;
+                    padding: 2.4rem 2rem; text-align:center;
+                    margin-bottom: .5rem; transition: all 0.2s ease;">
+            <div class="role-icon" style="font-size:3rem;margin-bottom:1rem;">📚</div>
+            <div class="role-title" style="margin-bottom:1rem;font-size:1.5rem;font-weight:600;">Student</div>
+            <div class="role-desc" style="opacity:0.8;font-size:0.95rem;line-height:1.5;">
+                Join a session with your session code,<br>
+                answer the question, and receive instant AI feedback.
+            </div>
         </div>
-    </div>
+    </a>
     """, unsafe_allow_html=True)
-    st.page_link("pages/2_Student_Portal.py", label="Open Student Portal →", icon="📚", use_container_width=True)
 
 st.markdown("""
 <div class="info-note" style="margin-top:1.5rem;text-align:center;">

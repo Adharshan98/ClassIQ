@@ -410,10 +410,8 @@ with st.sidebar:
     st.markdown("### Session Setup")
     teacher_name = st.text_input("👤  Teacher Name",   value="Dr. Ananya Sharma")
     section      = st.text_input("🏫  Section / Class", value="CS-A")
-    topic        = st.selectbox("📖  Topic", [
-        "Recursion","OOP","Linked List","Binary Search",
-        "Sorting","Hashing","Dynamic Programming","Graph","Stack","Queue",
-    ])
+    topic        = st.text_input("📖  Topic", value="Artificial Intelligence")
+    difficulty   = st.selectbox("⭐ Difficulty Level", ["Easy", "Medium", "Hard"], index=1)
     threshold = st.slider("📊  Engagement Threshold", 30, 90, 50, 5,
                           help="Reference line shown on the score chart")
 
@@ -455,7 +453,7 @@ st.markdown("""
 if run_btn:
     with st.spinner("Running hybrid AI pipeline…"):
         results  = run_session(topic, threshold)
-        question = generate_question(topic)
+        question = generate_question(topic, difficulty)
         now      = datetime.datetime.now().isoformat()
 
         engaged_n = sum(1 for r in results if r["label"] == "Engaged")
@@ -464,7 +462,7 @@ if run_btn:
         sid = save_session(teacher_name, section, topic, question, now, health, results)
         st.session_state.results = results
         st.session_state.meta    = dict(teacher=teacher_name, section=section,
-                                        topic=topic, question=question,
+                                        topic=topic, difficulty=difficulty, question=question,
                                         date=now, health=health)
 
     st.toast(f"✅ Session #{sid} saved — {health:.0f}% class health", icon="🎉")

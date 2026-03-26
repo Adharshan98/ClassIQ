@@ -175,6 +175,7 @@ def _init_state():
         "t_session_id":   None,
         "t_session_code": "",
         "t_topic":        "",
+        "t_difficulty":   "",
         "t_section":      "",
         "t_question":     "",
     }
@@ -217,16 +218,20 @@ def render():
         if st.session_state.t_logged_in:
             st.markdown("### 📋 Session Setup")
             section   = st.text_input("🏫 Section",  value="CS-A", key="sb_section")
-            topic     = st.selectbox("📖 Topic", [
-                "Recursion", "OOP", "Linked List", "Binary Search",
-                "Sorting", "Hashing", "Dynamic Programming", "Graph", "Stack", "Queue",
-            ], key="sb_topic")
+            topic     = st.text_input("📖 Topic", value="Artificial Intelligence", key="sb_topic")
+            difficulty = st.selectbox("⭐ Difficulty Level", ["Easy", "Medium", "Hard"], index=1, key="sb_difficulty")
             threshold = st.slider("📊 Threshold", 30, 90, 50, 5, key="sb_threshold",
                                   help="Reference line on the score chart")
 
             st.markdown("---")
             start_btn   = st.button("🚀  Start Session",     use_container_width=True, type="primary")
             refresh_btn = st.button("🔄  Refresh Dashboard",  use_container_width=True)  # noqa: F841
+            if refresh_btn:
+                from database.db import _cached_get_responses
+                _cached_get_responses.clear()
+            
+            auto_refresh = st.checkbox("🟢 Live Auto-Refresh (5s)", value=True, help="Turn off to pause auto-refresh while reading or exporting.")
+            st.session_state.t_auto_refresh = auto_refresh
 
             st.markdown("""
             <div style="margin-top:.8rem;padding:.65rem .85rem;
@@ -293,13 +298,14 @@ def render():
     # ══════════════════════════════════════════════════════════════════════════
     # STEP 2 — START SESSION
     # ══════════════════════════════════════════════════════════════════════════
-    topic     = st.session_state.get("sb_topic",     "Recursion")
-    section   = st.session_state.get("sb_section",   "CS-A")
-    threshold = st.session_state.get("sb_threshold", 50)
+    topic      = st.session_state.get("sb_topic",      "Artificial Intelligence")
+    difficulty = st.session_state.get("sb_difficulty", "Medium")
+    section    = st.session_state.get("sb_section",    "CS-A")
+    threshold  = st.session_state.get("sb_threshold",  50)
 
     if start_btn:
         with st.spinner("Generating question…"):
-            question = generate_question(topic)
+            question = generate_question(topic, difficulty)
             code     = _gen_code()
             now      = datetime.datetime.now().isoformat()
             sid      = create_session(code, st.session_state.t_name,
@@ -307,6 +313,7 @@ def render():
         st.session_state.t_session_id   = sid
         st.session_state.t_session_code = code
         st.session_state.t_topic        = topic
+        st.session_state.t_difficulty   = difficulty
         st.session_state.t_section      = section
         st.session_state.t_question     = question
         st.success("✅ Session created! Share the code with your students.")
@@ -346,6 +353,7 @@ def render():
                 </div>
                 <div style="font-size:.72rem;color:#475569;margin-top:.7rem;">
                     Topic: <strong style="color:#818cf8;">{st.session_state.t_topic}</strong>
+                    &nbsp;·&nbsp; Difficulty: <strong style="color:#818cf8;">{st.session_state.t_difficulty}</strong>
                     &nbsp;·&nbsp; Section: <strong style="color:#818cf8;">{st.session_state.t_section}</strong>
                 </div>
             </div>
@@ -665,6 +673,16 @@ def render():
             else:
                 st.markdown('<div class="info-note">📊 Run 2+ sessions for the same section &amp; topic to see the trend chart.</div>',
                             unsafe_allow_html=True)
+                            
+            if st.session_state.get('t_auto_refresh', True):
+                import time
+                time.sleep(5)
+                from database.db import _cached_get_responses
+                _cached_get_responses.clear()
+                try:
+                    st.rerun()
+                except AttributeError:
+                    st.experimental_rerun()
 
         else:
             st.markdown("""
@@ -678,6 +696,14 @@ def render():
                 </span>
             </div>
             """.format(code), unsafe_allow_html=True)
+            import time
+            time.sleep(3)
+            from database.db import _cached_get_responses
+            _cached_get_responses.clear() # purge cache explicitly to fetch latest
+            try:
+                st.rerun()
+            except AttributeError:
+                st.experimental_rerun()
 
     # ── SESSION HISTORY ────────────────────────────────────────────────────────
     st.markdown('<div class="sec-label">🗂️ &nbsp; Session History</div>', unsafe_allow_html=True)
