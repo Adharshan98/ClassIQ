@@ -6,12 +6,19 @@ Handles student login, joining sessions via code, submitting responses,
 and displaying individual AI evaluation (including Plagiarism/AI warnings).
 """
 
+import re
 import datetime
 import streamlit as st
 
 from core.auth            import validate_login
+from core.styles          import apply_global_styles
 from database.db          import get_session_by_code, save_response
 from core.session_manager import evaluate_student_response
+
+
+def _strip_html(text: str) -> str:
+    """Remove all HTML tags from AI-generated text to prevent layout breakage."""
+    return re.sub(r'<[^>]+>', '', str(text)).strip()
 
 
 def _init_state():
@@ -31,6 +38,7 @@ def _init_state():
 
 def render():
     _init_state()
+    apply_global_styles()
 
     # ── SIDEBAR ───────────────────────────────────────────────────────────────
     with st.sidebar:
@@ -216,71 +224,95 @@ def render():
         st.markdown('<div class="sec-label">📊 &nbsp; Your Engagement Result</div>', unsafe_allow_html=True)
 
         # Visual style mapping
-        label = res["label"]
+        label = res.get("label", "Unknown")
         if label == "Engaged":
-            c_light, c_border, bg = "#34d399", "rgba(52,211,153,0.3)", "rgba(52,211,153,0.06)"
-            ico = "✅"
+            c_light, c_border, bg = "#00d2ff", "rgba(0,210,255,0.4)", "linear-gradient(145deg, rgba(0,210,255,0.1), rgba(0,210,255,0.02))"
+            ico = "🔥"
         elif label == "Partially Engaged":
-            c_light, c_border, bg = "#fbbf24", "rgba(251,191,36,0.3)", "rgba(251,191,36,0.06)"
+            c_light, c_border, bg = "#a020f0", "rgba(160,32,240,0.5)", "linear-gradient(145deg, rgba(160,32,240,0.15), rgba(160,32,240,0.03))"
             ico = "⚡"
         else:
-            c_light, c_border, bg = "#f87171", "rgba(248,113,113,0.3)", "rgba(248,113,113,0.06)"
-            ico = "🔴"
+            c_light, c_border, bg = "#ff007a", "rgba(255,0,122,0.5)", "linear-gradient(145deg, rgba(255,0,122,0.15), rgba(255,0,122,0.03))"
+            ico = "⚠️"
 
-        # AI / plagiarism warning (only if flagged)
-        plag_html = ""
-        if res.get("plag_score", 0.0) >= 0.7:
-            flag_text = res.get("plag_flag", "High AI Probability detected. This response has been flagged.")
-            plag_html = f"""
-            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.5);
-                        border-radius:6px;padding:.5rem;margin-top:.8rem;text-align:center;">
-                <span style="color:#ef4444;font-weight:bold;font-size:.8rem;">⚠️ {flag_text}</span>
-            </div>"""
+        # Safe parsing — strip ALL HTML tags from AI-generated fields
+        risk_label_safe  = _strip_html(res.get("risk_label", "Unknown"))
+        feedback_safe    = _strip_html(res.get("feedback", ""))
+        scaffolding_safe = _strip_html(res.get("scaffolding", ""))
+        score_val        = float(res.get("score", 0.0))
 
+        # ── Result card using st.columns (avoids nested HTML closure bugs) ──────
         st.markdown(f"""
-        <div style="background:{bg};border:1px solid {c_border};border-radius:12px;
-                    padding:2.5rem;text-align:center;margin-bottom:1.5rem;display:flex;
-                    align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;">
-            <div>
-                <div style="font-size:4.2rem;font-weight:900;color:{c_light};line-height:1;margin-bottom:.4rem;">
-                    {res['score']:.1f}
-                </div>
-                <div style="font-size:.85rem;color:#64748b;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;">
-                    Out of 100
-                </div>
-            </div>
-            <div style="text-align:left;min-width:200px;border-left:1px solid rgba(255,255,255,0.1);padding-left:3rem;">
-                <div style="display:inline-block;padding:.4rem 1.2rem;
-                            background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
-                            border-radius:99px;font-size:.85rem;color:{c_light};font-weight:700;
-                            margin-bottom:.8rem;letter-spacing:0.02em;">
-                    {ico} {label}
-                </div>
-                <div style="font-size:.85rem;color:#94a3b8;margin-left:.25rem;">
-                    Risk Level: <strong style="color:{c_light};">{res['risk_label']}</strong>
-                </div>
-                {plag_html}
-            </div>
+        <div style="background:{bg};border:1px solid {c_border};border-radius:20px;
+                    padding:2rem 2.5rem;margin-bottom:1.5rem;
+                    box-shadow:0 8px 32px rgba(0,0,0,0.3);backdrop-filter:blur(10px);">
+            &nbsp;
         </div>
+        <style>
+        .result-overlay {{margin-top:-5.5rem;padding:0 2rem 2rem;}}
+        </style>
         """, unsafe_allow_html=True)
 
+        col_score, col_info = st.columns([1, 2], gap="large")
+        with col_score:
+            st.markdown(f"""
+            <div style="text-align:center;padding:1.5rem 0;">
+                <div style="font-size:5.5rem;font-weight:900;color:{c_light};line-height:1;
+                            text-shadow:0 0 30px {c_border};margin-bottom:.4rem;">
+                    {score_val:.1f}
+                </div>
+                <div style="font-size:.82rem;color:#a5b4fc;font-weight:700;
+                            letter-spacing:.18em;text-transform:uppercase;">
+                    OUT OF 100
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col_info:
+            st.markdown(f"""
+            <div style="padding:1.5rem 0 1rem 1.5rem;border-left:2px solid rgba(255,255,255,0.1);">
+                <div style="display:inline-block;padding:.55rem 1.4rem;
+                            background:rgba(255,255,255,0.06);border:1px solid {c_border};
+                            border-radius:99px;font-size:1rem;color:{c_light};font-weight:800;
+                            margin-bottom:1rem;letter-spacing:.05em;box-shadow:0 0 18px {c_border};">
+                    {ico} {label.upper()}
+                </div>
+                <div style="font-size:1rem;color:#cbd5e1;font-weight:500;margin-top:.2rem;">
+                    Risk Level &nbsp;<strong style="color:{c_light};font-weight:800;">{risk_label_safe}</strong>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            # Plagiarism warning as separate markdown (avoids nested injection)
+            if res.get("plag_score", 0.0) >= 0.7:
+                flag_text = _strip_html(res.get("plag_flag", "High AI Probability detected."))
+                st.markdown(f"""
+                <div style="background:rgba(255,0,122,0.15);border:1px solid rgba(255,0,122,0.4);
+                            border-radius:12px;padding:.9rem;margin-top:.5rem;text-align:center;
+                            box-shadow:0 4px 15px rgba(255,0,122,0.15);">
+                    <span style="color:#ff007a;font-weight:800;font-size:.88rem;letter-spacing:.04em;">
+                        🤖 {flag_text}
+                    </span>
+                </div>
+                """, unsafe_allow_html=True)
+
         # ── Personalised Feedback ─────────────────────────────────────────────
-        st.markdown('<div class="sec-label">💡 &nbsp; Personalised Feedback</div>', unsafe_allow_html=True)
+        st.markdown('<div class="sec-label">💡 &nbsp; Personalised AI Coaching</div>', unsafe_allow_html=True)
         st.markdown(f"""
-        <div style="background:rgba(14,165,233,0.05);border:1px solid rgba(14,165,233,0.2);
-                    border-radius:10px;padding:1.2rem;font-size:.95rem;color:#e0f2fe;margin-bottom:1.2rem;">
-            {res['feedback']}
+        <div style="background: linear-gradient(145deg, rgba(0,210,255,0.08), rgba(160,32,240,0.08)); 
+                    border:1px solid rgba(0,210,255,0.3); border-radius:14px; padding:1.5rem; 
+                    font-size:1.05rem; color:#e0f2fe; margin-bottom:1.5rem; border-left: 4px solid #00d2ff;">
+            {feedback_safe}
         </div>
         """, unsafe_allow_html=True)
 
         # ── Scaffolding (only if present) ─────────────────────────────────────
-        if res.get("scaffolding"):
-            st.markdown('<div class="sec-label">🔧 &nbsp; Hint &amp; Scaffolding</div>', unsafe_allow_html=True)
+        if scaffolding_safe:
+            st.markdown('<div class="sec-label">🔧 &nbsp; Recommended Scaffolding</div>', unsafe_allow_html=True)
             st.markdown(f"""
-            <div style="background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.3);
-                        border-radius:10px;border-left:4px solid #fbbf24;padding:1rem 1.4rem;
-                        font-size:.95rem;color:#fef3c7;margin-bottom:1.5rem;">
-                {res['scaffolding']}
+            <div style="background:rgba(255,0,122,0.05); border:1px solid rgba(255,0,122,0.3);
+                        border-radius:14px; border-left:4px solid #ff007a; padding:1.4rem;
+                        font-size:1.05rem; color:#fef3c7; margin-bottom:1.5rem;">
+                {scaffolding_safe}
             </div>
             """, unsafe_allow_html=True)
 

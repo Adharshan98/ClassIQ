@@ -31,6 +31,7 @@ from core.teacher_auth        import validate_teacher_login
 from core.question_generator  import generate_question
 from core.insight_engine      import generate_insight
 from core.concept_gap_engine  import analyse_concept_gaps
+from core.styles              import apply_global_styles
 from database.db import (
     create_session, update_session_health,
     get_responses_for_session, get_all_sessions, get_trend_data,
@@ -188,6 +189,7 @@ def _init_state():
 def render():
     """Entry point called from app.py."""
     _init_state()
+    apply_global_styles()
 
     # ── Sidebar brand ──────────────────────────────────────────────────────────
     with st.sidebar:
@@ -379,17 +381,83 @@ def render():
                 st.session_state[_prev_health_key] = health
 
             hc = "#34d399" if health >= 70 else "#fbbf24" if health >= 45 else "#f87171"
+            plag_color = '#f87171' if plagged > 0 else '#94a3b8'
+            plag_border = '#f8717133' if plagged > 0 else 'rgba(255,255,255,0.08)'
             st.markdown(f"""
-            <div class="stat-grid">
-                <div class="stat-card"><div class="sv sv-green">{engaged}</div><div class="sl">✅ Engaged</div></div>
-                <div class="stat-card"><div class="sv sv-yellow">{partial}</div><div class="sl">⚡ Partial</div></div>
-                <div class="stat-card"><div class="sv sv-red">{needs}</div><div class="sl">🔴 Needs Help</div></div>
-                <div class="stat-card"><div class="sv sv-purple">{highrisk}</div><div class="sl">⚠️ High Risk</div></div>
-                <div class="stat-card" style="border-color:{'#f87171' if plagged > 0 else 'rgba(255,255,255,0.08)'};">
-                    <div class="sv" style="color:{'#f87171' if plagged > 0 else '#94a3b8'};">{plagged}</div>
-                    <div class="sl">📋 Suspected AI</div>
+            <style>
+            .kpi-grid {{
+                display: grid;
+                grid-template-columns: repeat(6, 1fr);
+                gap: 1rem;
+                margin: 1.2rem 0 1.6rem;
+            }}
+            @media (max-width: 900px) {{
+                .kpi-grid {{ grid-template-columns: repeat(3, 1fr); }}
+            }}
+            .kpi-card {{
+                position: relative;
+                background: rgba(255,255,255,0.035);
+                border: 1px solid rgba(255,255,255,0.08);
+                border-radius: 18px;
+                padding: 1.4rem 1rem 1.1rem;
+                text-align: center;
+                overflow: hidden;
+                transition: transform .18s, box-shadow .18s;
+                cursor: default;
+            }}
+            .kpi-card:hover {{
+                transform: translateY(-4px);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+            }}
+            .kpi-card::before {{
+                content: "";
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 3px;
+                border-radius: 18px 18px 0 0;
+            }}
+            .kpi-green::before  {{ background: linear-gradient(90deg, #34d399, #10b981); }}
+            .kpi-yellow::before {{ background: linear-gradient(90deg, #fbbf24, #f59e0b); }}
+            .kpi-red::before    {{ background: linear-gradient(90deg, #f87171, #ef4444); }}
+            .kpi-purple::before {{ background: linear-gradient(90deg, #a78bfa, #8b5cf6); }}
+            .kpi-orange::before {{ background: linear-gradient(90deg, #fb923c, #f97316); }}
+            .kpi-health::before {{ background: linear-gradient(90deg, {hc}, {hc}aa); }}
+            .kpi-icon  {{ font-size: 1.5rem; margin-bottom: .4rem; line-height: 1; }}
+            .kpi-value {{ font-size: 2.4rem; font-weight: 900; line-height: 1.1; letter-spacing: -0.02em; }}
+            .kpi-label {{ font-size: .65rem; font-weight: 700; letter-spacing: .1em;
+                          text-transform: uppercase; color: #64748b !important; margin-top: .45rem; }}
+            </style>
+            <div class="kpi-grid">
+                <div class="kpi-card kpi-green">
+                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-value" style="color:#34d399;text-shadow:0 0 20px rgba(52,211,153,0.4);">{engaged}</div>
+                    <div class="kpi-label">Engaged</div>
                 </div>
-                <div class="stat-card"><div class="sv" style="color:{hc}!important;">{health:.0f}%</div><div class="sl">🏥 Class Health</div></div>
+                <div class="kpi-card kpi-yellow">
+                    <div class="kpi-icon">⚡</div>
+                    <div class="kpi-value" style="color:#fbbf24;text-shadow:0 0 20px rgba(251,191,36,0.4);">{partial}</div>
+                    <div class="kpi-label">Partial</div>
+                </div>
+                <div class="kpi-card kpi-red">
+                    <div class="kpi-icon">🔴</div>
+                    <div class="kpi-value" style="color:#f87171;text-shadow:0 0 20px rgba(248,113,113,0.4);">{needs}</div>
+                    <div class="kpi-label">Needs Help</div>
+                </div>
+                <div class="kpi-card kpi-purple">
+                    <div class="kpi-icon">⚠️</div>
+                    <div class="kpi-value" style="color:#a78bfa;text-shadow:0 0 20px rgba(167,139,250,0.4);">{highrisk}</div>
+                    <div class="kpi-label">High Risk</div>
+                </div>
+                <div class="kpi-card kpi-orange" style="border-color:{plag_border};">
+                    <div class="kpi-icon">🤖</div>
+                    <div class="kpi-value" style="color:{plag_color};text-shadow:0 0 20px {plag_color}55;">{plagged}</div>
+                    <div class="kpi-label">Suspected AI</div>
+                </div>
+                <div class="kpi-card kpi-health">
+                    <div class="kpi-icon">🏥</div>
+                    <div class="kpi-value" style="color:{hc};text-shadow:0 0 20px {hc}66;">{health:.0f}%</div>
+                    <div class="kpi-label">Class Health</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 

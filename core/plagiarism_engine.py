@@ -63,7 +63,8 @@ def detect_plagiarism(response_text: str) -> tuple[float, str]:
     words = text.split()
     word_count = len(words)
     
-    if word_count < 10:
+    # Lowered threshold to evaluate even small responses
+    if word_count < 5:
         return 0.0, "Too short to evaluate"
 
     score = 0.0
@@ -75,41 +76,42 @@ def detect_plagiarism(response_text: str) -> tuple[float, str]:
         if re.search(r'\b' + phrase + r'\b', text):
             matched_phrases += 1
             
-    if matched_phrases >= 2:
-        score += 0.4
+    # Trigger AI flag much faster
+    if matched_phrases >= 1:
+        score += 0.6
         reasons.append(f"Contains characteristic AI phrases ({matched_phrases})")
 
     # 2. Structural Uniformity (Perplexity Proxy)
     perp_score = _calculate_perplexity_proxy(response_text)
-    score += perp_score * 0.3
-    if perp_score > 0.5:
+    score += perp_score * 0.4
+    if perp_score > 0.4:
         reasons.append("Unnatural sentence structure uniformity")
 
     # 3. Formatting artifacts (asterisks, bullet points copied from Markdown or Wikipedia citations)
-    if "**" in response_text or "##" in response_text:
-        score += 0.35
+    if "**" in response_text or "##" in response_text or "###" in response_text or "`" in response_text:
+        score += 0.7  # High penalty for markdown
         reasons.append("Markdown formatting artifacts detected")
         
-    if re.search(r'\[\d+\]', text) or "[edit]" in text or "retrieved from" in text:
-        score += 0.8
+    if re.search(r'\[\d+\]', text) or "[edit]" in text or "retrieved from" in text or "wikipedia" in text:
+        score += 0.9
         reasons.append("Copy-paste artifacts detected (Wikipedia/Web)")
 
     # 4. Length anomaly (perfectly structured long paragraphs without typos)
-    if word_count > 100:
+    if word_count > 60:
         if not re.search(r'\b(im|alot|kinda|sorta|idk|idkl)\b', text):
             # AI/Wikipedia rarely uses casual abbreviations; students often do or make typos
-            score += 0.15
+            score += 0.25
         
         # If it's very long and highly formatted but no topic keywords match, it's just a raw dump
         sentences = len(re.split(r'[.!?]+', text))
-        if words and (sentences == 0 or word_count / max(1, sentences) > 25):
-            score += 0.2
+        if words and (sentences == 0 or word_count / max(1, sentences) > 20):
+            score += 0.3
             reasons.append("Unnatural paragraph length")
 
     # 5. Generic definition style text
-    if re.search(r'\bis defined as\b', text) or re.search(r'\brefers to\b', text):
-         if word_count > 40:
-             score += 0.15
+    if re.search(r'\bis defined as\b', text) or re.search(r'\brefers to\b', text) or re.search(r'\bcan be\b', text):
+         if word_count > 20:
+             score += 0.25
              reasons.append("Generic textbook definition style")
 
     # Cap between 0 and 1

@@ -8,7 +8,7 @@ def apply_global_styles():
 *, html, body { font-family: 'Inter', sans-serif !important; }
 
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #0a0e1a 0%, #0d1528 40%, #111c35 70%, #0a1220 100%) !important;
+    background: linear-gradient(135deg, #070312 0%, #15092a 35%, #251044 75%, #090314 100%) !important;
     min-height: 100vh;
 }
 [data-testid="stHeader"]  { background: transparent !important; }
@@ -47,12 +47,12 @@ h1,h2,h3,h4,h5,h6 { color: #f0f6ff !important; }
 }
 
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+    background: linear-gradient(135deg, #ff007a, #7928ca) !important;
     color: #fff !important; border: none !important;
     border-radius: 12px !important; font-weight: 700 !important;
     font-size: .95rem !important; letter-spacing: .03em !important;
     padding: .7rem 1.2rem !important;
-    box-shadow: 0 4px 24px rgba(99,102,241,.40) !important;
+    box-shadow: 0 4px 24px rgba(255,0,122,.40) !important;
     transition: transform .15s, box-shadow .15s !important;
 }
 .stButton > button[kind="primary"]:hover {
@@ -85,10 +85,10 @@ hr { border-color:rgba(255,255,255,0.06) !important; }
 
 /* ══ Custom Components ══ */
 .hero {
-    background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
-    border:1px solid rgba(99,102,241,0.2); border-radius:20px;
+    background: linear-gradient(135deg,#130526 0%,#260d4a 50%,#0f0321 100%);
+    border:1px solid rgba(255,0,122,0.3); border-radius:20px;
     padding:2.4rem 3rem; position:relative; overflow:hidden;
-    margin-bottom:1.6rem; box-shadow:0 8px 40px rgba(99,102,241,0.18);
+    margin-bottom:1.6rem; box-shadow:0 8px 40px rgba(255,0,122,0.25);
 }
 .hero::before {
     content:""; position:absolute; top:-60px; right:-60px;
@@ -103,8 +103,8 @@ hr { border-color:rgba(255,255,255,0.06) !important; }
     border-radius:50%;
 }
 .hero h1 {
-    font-size:2.8rem !important; font-weight:800 !important;
-    background:linear-gradient(90deg,#818cf8,#c084fc,#60a5fa);
+    font-size:3rem !important; font-weight:800 !important;
+    background:linear-gradient(90deg,#00d2ff,#a020f0,#ff007a);
     -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     background-clip:text; margin:0 !important; line-height:1.15 !important;
 }
@@ -120,10 +120,10 @@ hr { border-color:rgba(255,255,255,0.06) !important; }
 .sec-label {
     display:flex; align-items:center; gap:.6rem;
     font-size:.72rem; font-weight:700; letter-spacing:.12em;
-    text-transform:uppercase; color:#6366f1 !important;
+    text-transform:uppercase; color:#00d2ff !important;
     margin:1.8rem 0 .9rem;
 }
-.sec-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(99,102,241,0.4),transparent); }
+.sec-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg,rgba(0,210,255,0.4),transparent); }
 
 .glass {
     background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
